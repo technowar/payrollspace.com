@@ -1,0 +1,15 @@
+package: github.com/XanderDwyl/payrollspace.com
+import:
+- package: github.com/bradfitz/gomemcache
+  subpackages:
+  - memcache
+- package: github.com/dgrijalva/jwt-go
+  version: ~3.1.0
+- package: github.com/gin-contrib/gzip
+- package: github.com/gin-contrib/sessions
+- package: github.com/jinzhu/gorm
+  version: ~1.0.0
+  subpackages:
+  - dialects/mysql
+- package: gopkg.in/gin-gonic/gin.v1
+  version: ~1.2.0

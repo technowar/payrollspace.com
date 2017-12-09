@@ -13,3 +13,5 @@ import:
   - dialects/mysql
 - package: gopkg.in/gin-gonic/gin.v1
   version: ~1.2.0
+- package: github.com/gin-contrib/cors
+  version: bec00ec82559b4f4905818c2bbd7441dd64277af

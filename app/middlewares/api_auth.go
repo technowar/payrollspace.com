@@ -7,8 +7,9 @@ import (
 	"github.com/XanderDwyl/payrollspace.com/app/config"
 	"github.com/XanderDwyl/payrollspace.com/app/controllers"
 	"github.com/XanderDwyl/payrollspace.com/app/models"
+
 	jwt "github.com/dgrijalva/jwt-go"
-	//"github.com/gin-gonic/gin"
+
 	"gopkg.in/gin-gonic/gin.v1"
 )
 
@@ -32,14 +33,15 @@ func APIAuth() gin.HandlerFunc {
 			c.Next()
 			return
 		}
+
 		if !strings.HasPrefix(c.Request.URL.Path, "/api") {
 			c.Next()
 			return
 		}
 
-		for path, b := range loginNotRequiredPathPrefixes {
-			if b {
-				if strings.HasPrefix(c.Request.URL.Path, path) {
+		for key, value := range loginNotRequiredPathPrefixes {
+			if value {
+				if strings.HasPrefix(c.Request.URL.Path, key) {
 					c.Next()
 					return
 				}
@@ -47,10 +49,10 @@ func APIAuth() gin.HandlerFunc {
 		}
 
 		tokenString := strings.Replace(c.Request.Header.Get("Authorization"), "Bearer ", "", 1)
+
 		if len(tokenString) == 0 {
-			//apiv1handlers.OutputErrorJSON(c, "invalid sig")
-			//c.Abort()
-			log.Print("invalid sig")
+			log.Println("Token String not found")
+
 			c.Set("is_login", false)
 			c.Next()
 			return
@@ -62,24 +64,22 @@ func APIAuth() gin.HandlerFunc {
 		})
 
 		if err != nil {
-			//apiv1handlfers.OutputErrorJSON(c, "JWT error")
-			//c.Abort()
-			log.Print("JWT error")
+			log.Println("JWT Error")
+
 			c.Set("is_login", false)
 			c.Next()
 			return
 		}
 
 		if user.UserID == 0 || user.Username == "" {
-			//c.JSON(http.StatusUnauthorized, gin.H{"err": "invalid sig or no such user"})
-			controllers.OutputErrorJSON(c, "invalid sig or no such user")
+			controllers.OutputErrorJSON(c, "User not found")
 			c.Abort()
 			return
 		}
+
 		c.Set("is_login", true)
 		c.Set("access_token", user.AccessToken)
 		c.Set("me", user)
 		c.Next()
 	}
-
 }

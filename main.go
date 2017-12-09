@@ -5,6 +5,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/XanderDwyl/payrollspace.com/app/controllers"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-contrib/sessions"
@@ -21,6 +23,7 @@ func main() {
 	router := gin.Default()
 	allowOrigins := []string{
 		"http://payrollspace.com",
+		"https://payrollspace.com",
 	}
 
 	if os.Getenv("MODE") != "production" {
@@ -53,4 +56,7 @@ func main() {
 }
 
 func initializeRoutes(origRouter *gin.Engine) {
+	router := origRouter.Group("")
+
+	router.GET("/", controllers.AppIndex)
 }

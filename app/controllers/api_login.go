@@ -5,6 +5,6 @@ import (
 )
 
 func APILogin(c *gin.Context) {
-	OutputSuccessDataJSON(c, "JWT Token", gin.H{"jwt": "jwt"})
+	OutputDataJSON(c, 200, "JWT Token", gin.H{"jwt": "jwt"})
 	return
 }

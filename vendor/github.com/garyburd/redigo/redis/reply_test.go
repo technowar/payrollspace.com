@@ -37,19 +37,9 @@ var replyTests = []struct {
 	expected valueError
 }{
 	{
-		"ints([[]byte, []byte])",
+		"ints([v1, v2])",
 		ve(redis.Ints([]interface{}{[]byte("4"), []byte("5")}, nil)),
 		ve([]int{4, 5}, nil),
-	},
-	{
-		"ints([nt64, int64])",
-		ve(redis.Ints([]interface{}{int64(4), int64(5)}, nil)),
-		ve([]int{4, 5}, nil),
-	},
-	{
-		"ints([[]byte, nil, []byte])",
-		ve(redis.Ints([]interface{}{[]byte("4"), nil, []byte("5")}, nil)),
-		ve([]int{4, 0, 5}, nil),
 	},
 	{
 		"ints(nil)",
@@ -57,24 +47,14 @@ var replyTests = []struct {
 		ve([]int(nil), redis.ErrNil),
 	},
 	{
-		"int64s([[]byte, []byte])",
-		ve(redis.Int64s([]interface{}{[]byte("4"), []byte("5")}, nil)),
-		ve([]int64{4, 5}, nil),
-	},
-	{
-		"int64s([int64, int64])",
-		ve(redis.Int64s([]interface{}{int64(4), int64(5)}, nil)),
-		ve([]int64{4, 5}, nil),
-	},
-	{
-		"strings([[]byte, []bytev2])",
+		"strings([v1, v2])",
 		ve(redis.Strings([]interface{}{[]byte("v1"), []byte("v2")}, nil)),
 		ve([]string{"v1", "v2"}, nil),
 	},
 	{
-		"strings([string, string])",
-		ve(redis.Strings([]interface{}{"v1", "v2"}, nil)),
-		ve([]string{"v1", "v2"}, nil),
+		"strings(nil)",
+		ve(redis.Strings(nil, nil)),
+		ve([]string(nil), redis.ErrNil),
 	},
 	{
 		"byteslices([v1, v2])",
@@ -82,9 +62,9 @@ var replyTests = []struct {
 		ve([][]byte{[]byte("v1"), []byte("v2")}, nil),
 	},
 	{
-		"float64s([v1, v2])",
-		ve(redis.Float64s([]interface{}{[]byte("1.234"), []byte("5.678")}, nil)),
-		ve([]float64{1.234, 5.678}, nil),
+		"byteslices(nil)",
+		ve(redis.ByteSlices(nil, nil)),
+		ve([][]byte(nil), redis.ErrNil),
 	},
 	{
 		"values([v1, v2])",
@@ -138,11 +118,6 @@ func TestReply(t *testing.T) {
 // dial wraps DialDefaultServer() with a more suitable function name for examples.
 func dial() (redis.Conn, error) {
 	return redis.DialDefaultServer()
-}
-
-// serverAddr wraps DefaultServerAddr() with a more suitable function name for examples.
-func serverAddr() (string, error) {
-	return redis.DefaultServerAddr()
 }
 
 func ExampleBool() {

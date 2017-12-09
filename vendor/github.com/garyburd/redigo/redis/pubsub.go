@@ -18,6 +18,7 @@ import "errors"
 
 // Subscription represents a subscribe or unsubscribe notification.
 type Subscription struct {
+
 	// Kind is "subscribe", "unsubscribe", "psubscribe" or "punsubscribe"
 	Kind string
 
@@ -30,6 +31,7 @@ type Subscription struct {
 
 // Message represents a message notification.
 type Message struct {
+
 	// The originating channel.
 	Channel string
 
@@ -39,6 +41,7 @@ type Message struct {
 
 // PMessage represents a pmessage notification.
 type PMessage struct {
+
 	// The matched pattern.
 	Pattern string
 

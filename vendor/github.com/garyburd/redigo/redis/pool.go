@@ -115,6 +115,7 @@ var (
 //  }
 //
 type Pool struct {
+
 	// Dial is an application supplied function for creating and configuring a
 	// connection.
 	//
@@ -268,6 +269,7 @@ func (p *Pool) get() (Conn, error) {
 	}
 
 	for {
+
 		// Get idle connection.
 
 		for i, n := 0, p.idle.Len(); i < n; i++ {

@@ -10,7 +10,6 @@ package codec
 import (
 	"reflect"
 	"sync/atomic"
-	"time"
 	"unsafe"
 )
 
@@ -19,7 +18,6 @@ import (
 
 // var zeroRTv [4]uintptr
 
-const safeMode = false
 const unsafeFlagIndir = 1 << 7 // keep in sync with GO_ROOT/src/reflect/value.go
 
 type unsafeString struct {
@@ -65,28 +63,7 @@ func bytesView(v string) []byte {
 }
 
 func definitelyNil(v interface{}) bool {
-	// There is no global way of checking if an interface is nil.
-	// For true references (map, ptr, func, chan), you can just look
-	// at the word of the interface. However, for slices, you have to dereference
-	// the word, and get a pointer to the 3-word interface value.
-	//
-	// However, the following are cheap calls
-	// - TypeOf(interface): cheap 2-line call.
-	// - ValueOf(interface{}): expensive
-	// - type.Kind: cheap call through an interface
-	// - Value.Type(): cheap call
-	//                 except it's a method value (e.g. r.Read, which implies that it is a Func)
-
-	return ((*unsafeIntf)(unsafe.Pointer(&v))).word == nil
-
-	// var ui *unsafeIntf = (*unsafeIntf)(unsafe.Pointer(&v))
-	// if ui.word == nil {
-	// 	return true
-	// }
-	// var tk = reflect.TypeOf(v).Kind()
-	// return (tk == reflect.Interface || tk == reflect.Slice) && *(*unsafe.Pointer)(ui.word) == nil
-	// fmt.Printf(">>>> definitely nil: isnil: %v, TYPE: \t%T, word: %v, *word: %v, type: %v, nil: %v\n",
-	// v == nil, v, word, *((*unsafe.Pointer)(word)), ui.typ, nil)
+	return (*unsafeIntf)(unsafe.Pointer(&v)).word == nil
 }
 
 // func keepAlive4BytesView(v string) {
@@ -100,21 +77,19 @@ func definitelyNil(v interface{}) bool {
 // TODO: consider a more generally-known optimization for reflect.Value ==> Interface
 //
 // Currently, we use this fragile method that taps into implememtation details from
-// the source go stdlib reflect/value.go, and trims the implementation.
+// the source go stdlib reflect/value.go,
+// and trims the implementation.
 func rv2i(rv reflect.Value) interface{} {
-	urv := (*unsafeReflectValue)(unsafe.Pointer(&rv))
-	// true references (map, func, chan, ptr - NOT slice) may be double-referenced as flagIndir
-	var ptr unsafe.Pointer
-	// kk := reflect.Kind(urv.flag & (1<<5 - 1))
-	// if (kk == reflect.Map || kk == reflect.Ptr || kk == reflect.Chan || kk == reflect.Func) && urv.flag&unsafeFlagIndir != 0 {
-	if refBitset.isset(byte(urv.flag&(1<<5-1))) && urv.flag&unsafeFlagIndir != 0 {
-		ptr = *(*unsafe.Pointer)(urv.ptr)
-	} else {
-		ptr = urv.ptr
+	if false {
+		return rv.Interface()
 	}
-	return *(*interface{})(unsafe.Pointer(&unsafeIntf{typ: urv.typ, word: ptr}))
-	// return *(*interface{})(unsafe.Pointer(&unsafeIntf{word: *(*unsafe.Pointer)(urv.ptr), typ: urv.typ}))
-	// return *(*interface{})(unsafe.Pointer(&unsafeIntf{word: urv.ptr, typ: urv.typ}))
+	urv := (*unsafeReflectValue)(unsafe.Pointer(&rv))
+	// references that are single-words (map, ptr) may be double-referenced as flagIndir
+	kk := urv.flag & (1<<5 - 1)
+	if (kk == uintptr(reflect.Map) || kk == uintptr(reflect.Ptr)) && urv.flag&unsafeFlagIndir != 0 {
+		return *(*interface{})(unsafe.Pointer(&unsafeIntf{word: *(*unsafe.Pointer)(urv.ptr), typ: urv.typ}))
+	}
+	return *(*interface{})(unsafe.Pointer(&unsafeIntf{word: urv.ptr, typ: urv.typ}))
 }
 
 func rt2id(rt reflect.Type) uintptr {
@@ -123,10 +98,6 @@ func rt2id(rt reflect.Type) uintptr {
 
 func rv2rtid(rv reflect.Value) uintptr {
 	return uintptr((*unsafeReflectValue)(unsafe.Pointer(&rv)).typ)
-}
-
-func i2rtid(i interface{}) uintptr {
-	return uintptr(((*unsafeIntf)(unsafe.Pointer(&i))).typ)
 }
 
 // func rv0t(rt reflect.Type) reflect.Value {
@@ -166,11 +137,6 @@ func (d *Decoder) kString(f *codecFnInfo, rv reflect.Value) {
 func (d *Decoder) kBool(f *codecFnInfo, rv reflect.Value) {
 	urv := (*unsafeReflectValue)(unsafe.Pointer(&rv))
 	*(*bool)(urv.ptr) = d.d.DecodeBool()
-}
-
-func (d *Decoder) kTime(f *codecFnInfo, rv reflect.Value) {
-	urv := (*unsafeReflectValue)(unsafe.Pointer(&rv))
-	*(*time.Time)(urv.ptr) = d.d.DecodeTime()
 }
 
 func (d *Decoder) kFloat32(f *codecFnInfo, rv reflect.Value) {
@@ -236,88 +202,6 @@ func (d *Decoder) kUint32(f *codecFnInfo, rv reflect.Value) {
 func (d *Decoder) kUint64(f *codecFnInfo, rv reflect.Value) {
 	urv := (*unsafeReflectValue)(unsafe.Pointer(&rv))
 	*(*uint64)(urv.ptr) = d.d.DecodeUint(64)
-}
-
-// ------------
-
-func (e *Encoder) kBool(f *codecFnInfo, rv reflect.Value) {
-	v := (*unsafeReflectValue)(unsafe.Pointer(&rv))
-	e.e.EncodeBool(*(*bool)(v.ptr))
-}
-
-func (e *Encoder) kTime(f *codecFnInfo, rv reflect.Value) {
-	v := (*unsafeReflectValue)(unsafe.Pointer(&rv))
-	e.e.EncodeTime(*(*time.Time)(v.ptr))
-}
-
-func (e *Encoder) kString(f *codecFnInfo, rv reflect.Value) {
-	v := (*unsafeReflectValue)(unsafe.Pointer(&rv))
-	e.e.EncodeString(cUTF8, *(*string)(v.ptr))
-}
-
-func (e *Encoder) kFloat64(f *codecFnInfo, rv reflect.Value) {
-	v := (*unsafeReflectValue)(unsafe.Pointer(&rv))
-	e.e.EncodeFloat64(*(*float64)(v.ptr))
-}
-
-func (e *Encoder) kFloat32(f *codecFnInfo, rv reflect.Value) {
-	v := (*unsafeReflectValue)(unsafe.Pointer(&rv))
-	e.e.EncodeFloat32(*(*float32)(v.ptr))
-}
-
-func (e *Encoder) kInt(f *codecFnInfo, rv reflect.Value) {
-	v := (*unsafeReflectValue)(unsafe.Pointer(&rv))
-	e.e.EncodeInt(int64(*(*int)(v.ptr)))
-}
-
-func (e *Encoder) kInt8(f *codecFnInfo, rv reflect.Value) {
-	v := (*unsafeReflectValue)(unsafe.Pointer(&rv))
-	e.e.EncodeInt(int64(*(*int8)(v.ptr)))
-}
-
-func (e *Encoder) kInt16(f *codecFnInfo, rv reflect.Value) {
-	v := (*unsafeReflectValue)(unsafe.Pointer(&rv))
-	e.e.EncodeInt(int64(*(*int16)(v.ptr)))
-}
-
-func (e *Encoder) kInt32(f *codecFnInfo, rv reflect.Value) {
-	v := (*unsafeReflectValue)(unsafe.Pointer(&rv))
-	e.e.EncodeInt(int64(*(*int32)(v.ptr)))
-}
-
-func (e *Encoder) kInt64(f *codecFnInfo, rv reflect.Value) {
-	v := (*unsafeReflectValue)(unsafe.Pointer(&rv))
-	e.e.EncodeInt(int64(*(*int64)(v.ptr)))
-}
-
-func (e *Encoder) kUint(f *codecFnInfo, rv reflect.Value) {
-	v := (*unsafeReflectValue)(unsafe.Pointer(&rv))
-	e.e.EncodeUint(uint64(*(*uint)(v.ptr)))
-}
-
-func (e *Encoder) kUint8(f *codecFnInfo, rv reflect.Value) {
-	v := (*unsafeReflectValue)(unsafe.Pointer(&rv))
-	e.e.EncodeUint(uint64(*(*uint8)(v.ptr)))
-}
-
-func (e *Encoder) kUint16(f *codecFnInfo, rv reflect.Value) {
-	v := (*unsafeReflectValue)(unsafe.Pointer(&rv))
-	e.e.EncodeUint(uint64(*(*uint16)(v.ptr)))
-}
-
-func (e *Encoder) kUint32(f *codecFnInfo, rv reflect.Value) {
-	v := (*unsafeReflectValue)(unsafe.Pointer(&rv))
-	e.e.EncodeUint(uint64(*(*uint32)(v.ptr)))
-}
-
-func (e *Encoder) kUint64(f *codecFnInfo, rv reflect.Value) {
-	v := (*unsafeReflectValue)(unsafe.Pointer(&rv))
-	e.e.EncodeUint(uint64(*(*uint64)(v.ptr)))
-}
-
-func (e *Encoder) kUintptr(f *codecFnInfo, rv reflect.Value) {
-	v := (*unsafeReflectValue)(unsafe.Pointer(&rv))
-	e.e.EncodeUint(uint64(*(*uintptr)(v.ptr)))
 }
 
 // ------------

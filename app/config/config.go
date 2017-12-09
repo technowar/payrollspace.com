@@ -1,7 +1,6 @@
 package config
 
 import (
-	"log"
 	"os"
 	"strings"
 
@@ -16,10 +15,12 @@ const (
 var jwtSalt string
 var envChecked bool
 
+// init ...
 func init() {
 	CheckEnvs()
 }
 
+// CheckEnvs ...
 func CheckEnvs() error {
 	if envChecked {
 		return nil
@@ -37,6 +38,7 @@ func CheckEnvs() error {
 	return nil
 }
 
+// GetCallbackURL ...
 func GetCallbackURL(c *gin.Context) string {
 	hostname := GetCallbackHostname(c)
 	scheme := "http"
@@ -48,10 +50,12 @@ func GetCallbackURL(c *gin.Context) string {
 	return scheme + "://" + hostname + "/callback"
 }
 
+// GetCallbackHostname ...
 func GetCallbackHostname(c *gin.Context) string {
 	return "localhost:3000"
 }
 
+// GetJWTSalt ...
 func GetJWTSalt() string {
 	if envChecked == false {
 		os.Exit(1)

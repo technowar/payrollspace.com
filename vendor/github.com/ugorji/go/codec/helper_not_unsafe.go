@@ -8,10 +8,7 @@ package codec
 import (
 	"reflect"
 	"sync/atomic"
-	"time"
 )
-
-const safeMode = true
 
 // stringView returns a view of the []byte as a string.
 // In unsafe mode, it doesn't incur allocation and copying caused by conversion.
@@ -34,8 +31,6 @@ func bytesView(v string) []byte {
 }
 
 func definitelyNil(v interface{}) bool {
-	// this is a best-effort option.
-	// We just return false, so we don't unneessarily incur the cost of reflection this early.
 	return false
 	// rv := reflect.ValueOf(v)
 	// switch rv.Kind() {
@@ -70,15 +65,11 @@ func rv2rtid(rv reflect.Value) uintptr {
 	return reflect.ValueOf(rv.Type()).Pointer()
 }
 
-func i2rtid(i interface{}) uintptr {
-	return reflect.ValueOf(reflect.TypeOf(i)).Pointer()
-}
-
 // --------------------------
 // type ptrToRvMap struct{}
 
-// func (*ptrToRvMap) init() {}
-// func (*ptrToRvMap) get(i interface{}) reflect.Value {
+// func (_ *ptrToRvMap) init() {}
+// func (_ *ptrToRvMap) get(i interface{}) reflect.Value {
 // 	return reflect.ValueOf(i).Elem()
 // }
 
@@ -110,10 +101,6 @@ func (d *Decoder) kString(f *codecFnInfo, rv reflect.Value) {
 
 func (d *Decoder) kBool(f *codecFnInfo, rv reflect.Value) {
 	rv.SetBool(d.d.DecodeBool())
-}
-
-func (d *Decoder) kTime(f *codecFnInfo, rv reflect.Value) {
-	rv.Set(reflect.ValueOf(d.d.DecodeTime()))
 }
 
 func (d *Decoder) kFloat32(f *codecFnInfo, rv reflect.Value) {
@@ -166,70 +153,4 @@ func (d *Decoder) kUint32(f *codecFnInfo, rv reflect.Value) {
 
 func (d *Decoder) kUint64(f *codecFnInfo, rv reflect.Value) {
 	rv.SetUint(d.d.DecodeUint(64))
-}
-
-// ----------------
-
-func (e *Encoder) kBool(f *codecFnInfo, rv reflect.Value) {
-	e.e.EncodeBool(rv.Bool())
-}
-
-func (e *Encoder) kTime(f *codecFnInfo, rv reflect.Value) {
-	e.e.EncodeTime(rv2i(rv).(time.Time))
-}
-
-func (e *Encoder) kString(f *codecFnInfo, rv reflect.Value) {
-	e.e.EncodeString(cUTF8, rv.String())
-}
-
-func (e *Encoder) kFloat64(f *codecFnInfo, rv reflect.Value) {
-	e.e.EncodeFloat64(rv.Float())
-}
-
-func (e *Encoder) kFloat32(f *codecFnInfo, rv reflect.Value) {
-	e.e.EncodeFloat32(float32(rv.Float()))
-}
-
-func (e *Encoder) kInt(f *codecFnInfo, rv reflect.Value) {
-	e.e.EncodeInt(rv.Int())
-}
-
-func (e *Encoder) kInt8(f *codecFnInfo, rv reflect.Value) {
-	e.e.EncodeInt(rv.Int())
-}
-
-func (e *Encoder) kInt16(f *codecFnInfo, rv reflect.Value) {
-	e.e.EncodeInt(rv.Int())
-}
-
-func (e *Encoder) kInt32(f *codecFnInfo, rv reflect.Value) {
-	e.e.EncodeInt(rv.Int())
-}
-
-func (e *Encoder) kInt64(f *codecFnInfo, rv reflect.Value) {
-	e.e.EncodeInt(rv.Int())
-}
-
-func (e *Encoder) kUint(f *codecFnInfo, rv reflect.Value) {
-	e.e.EncodeUint(rv.Uint())
-}
-
-func (e *Encoder) kUint8(f *codecFnInfo, rv reflect.Value) {
-	e.e.EncodeUint(rv.Uint())
-}
-
-func (e *Encoder) kUint16(f *codecFnInfo, rv reflect.Value) {
-	e.e.EncodeUint(rv.Uint())
-}
-
-func (e *Encoder) kUint32(f *codecFnInfo, rv reflect.Value) {
-	e.e.EncodeUint(rv.Uint())
-}
-
-func (e *Encoder) kUint64(f *codecFnInfo, rv reflect.Value) {
-	e.e.EncodeUint(rv.Uint())
-}
-
-func (e *Encoder) kUintptr(f *codecFnInfo, rv reflect.Value) {
-	e.e.EncodeUint(rv.Uint())
 }

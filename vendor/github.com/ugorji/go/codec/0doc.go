@@ -2,9 +2,8 @@
 // Use of this source code is governed by a MIT license found in the LICENSE file.
 
 /*
-Package codec provides a
-High Performance, Feature-Rich Idiomatic Go 1.4+ codec/encoding library
-for binc, msgpack, cbor, json.
+High Performance, Feature-Rich Idiomatic Go 1.4+ codec/encoding library for
+binc, msgpack, cbor, json
 
 Supported Serialization formats are:
 
@@ -94,27 +93,6 @@ encoded as an empty map because it has no exported fields, while UUID
 would be encoded as a string. However, with extension support, you can
 encode any of these however you like.
 
-Custom Encoding and Decoding
-
-This package maintains symmetry in the encoding and decoding halfs.
-We determine how to encode or decode by walking this decision tree
-
-  - is type a codec.Selfer?
-  - is there an extension registered for the type?
-  - is format binary, and is type a encoding.BinaryMarshaler and BinaryUnmarshaler?
-  - is format specifically json, and is type a encoding/json.Marshaler and Unmarshaler?
-  - is format text-based, and type an encoding.TextMarshaler?
-  - else we use a pair of functions based on the "kind" of the type e.g. map, slice, int64, etc
-
-This symmetry is important to reduce chances of issues happening because the
-encoding and decoding sides are out of sync e.g. decoded via very specific
-encoding.TextUnmarshaler but encoded via kind-specific generalized mode.
-
-Consequently, if a type only defines one-half of the symmetry
-(e.g. it implements UnmarshalJSON() but not MarshalJSON() ),
-then that type doesn't satisfy the check and we will continue walking down the
-decision tree.
-
 RPC
 
 RPC Client and Server Codecs are implemented, so the codecs can be used
@@ -202,32 +180,6 @@ Running Benchmarks
 
 Please see http://github.com/ugorji/go-codec-bench .
 
-Caveats
-
-Struct fields matching the following are ignored during encoding and decoding
-    - struct tag value set to -
-    - func, complex numbers, unsafe pointers
-    - unexported and not embedded
-    - unexported embedded non-struct
-    - unexported embedded pointers (from go1.10)
-
-Every other field in a struct will be encoded/decoded.
-
-Embedded fields are encoded as if they exist in the top-level struct,
-with some caveats. See Encode documentation.
-
 */
 package codec
 
-// TODO:
-//   - In Go 1.10, when mid-stack inlining is enabled,
-//     we should use committed functions for writeXXX and readXXX calls.
-//     This involves uncommenting the methods for decReaderSwitch and encWriterSwitch
-//     and using those (decReaderSwitch and encWriterSwitch in all handles
-//     instead of encWriter and decReader.
-//   - removing conditionals used to avoid calling no-op functions via interface calls.
-//     esep, etc.
-//     It *should* make the code cleaner, and maybe more performant,
-//     as conditional branches are expensive.
-//     However, per https://groups.google.com/forum/#!topic/golang-nuts/DNELyNnTzFA ,
-//     there is no optimization if calling an empty function via an interface.

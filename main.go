@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/XanderDwyl/payrollspace.com/app/controllers"
+	"github.com/XanderDwyl/payrollspace.com/app/models"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/gzip"
@@ -17,6 +18,7 @@ import (
 
 func init() {
 	log.SetFlags(log.Lshortfile)
+	models.Setup()
 }
 
 func main() {
@@ -46,8 +48,8 @@ func main() {
 
 	router.Use(sessions.Sessions("mysession", store))
 	router.Use(gzip.Gzip(gzip.DefaultCompression))
-	router.Static("/assets", "./assets")
-	router.StaticFile("/favicon.ico", "./assets/favicon.ico")
+	// router.Static("/assets", "./assets")
+	// router.StaticFile("/favicon.ico", "./assets/favicon.ico")
 	router.Use(gin.Recovery())
 
 	initializeRoutes(router)
@@ -56,7 +58,12 @@ func main() {
 }
 
 func initializeRoutes(origRouter *gin.Engine) {
-	router := origRouter.Group("")
+	api := origRouter.Group("")
+	api.GET("/", controllers.AppIndex)
 
-	router.GET("/", controllers.AppIndex)
+	api = origRouter.Group("/v1")
+	{
+		api.GET("/", controllers.AppIndex)
+		api.POST("/login", controllers.APILogin)
+	}
 }

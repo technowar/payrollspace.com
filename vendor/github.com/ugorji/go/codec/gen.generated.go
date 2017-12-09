@@ -1,5 +1,3 @@
-// +build codecgen.exec
-
 // Copyright (c) 2012-2015 Ugorji Nwoke. All rights reserved.
 // Use of this source code is governed by a MIT license found in the LICENSE file.
 
@@ -27,7 +25,7 @@ if {{var "bh"}}.MapValueReset {
 if {{var "l"}} != 0 {
 {{var "hl"}} := {{var "l"}} > 0 
 	for {{var "j"}} := 0; ({{var "hl"}} && {{var "j"}} < {{var "l"}}) || !({{var "hl"}} || r.CheckBreak()); {{var "j"}}++ {
-	r.ReadMapElemKey() {{/* z.DecSendContainerState(codecSelfer_containerMapKey{{ .Sfx }}) */}}
+	z.DecSendContainerState(codecSelfer_containerMapKey{{ .Sfx }})
 	{{ $x := printf "%vmk%v" .TempVar .Rand }}{{ decLineVarK $x }}
 {{ if eq .KTyp "interface{}" }}{{/* // special case if a byte array. */}}if {{var "bv"}}, {{var "bok"}} := {{var "mk"}}.([]byte); {{var "bok"}} {
 		{{var "mk"}} = string({{var "bv"}})
@@ -39,7 +37,7 @@ if {{var "l"}} != 0 {
 			{{var "ms"}} = false
 		} {{else}}{{var "mv"}} = {{var "v"}}[{{var "mk"}}] {{end}}
 	} {{if not decElemKindImmutable}}else { {{var "mv"}} = {{decElemZero}} }{{end}}
-	r.ReadMapElemValue() {{/* z.DecSendContainerState(codecSelfer_containerMapValue{{ .Sfx }}) */}}
+	z.DecSendContainerState(codecSelfer_containerMapValue{{ .Sfx }})
 	{{var "mdn"}} = false
 	{{ $x := printf "%vmv%v" .TempVar .Rand }}{{ $y := printf "%vmdn%v" .TempVar .Rand }}{{ decLineVar $x $y }}
 	if {{var "mdn"}} {
@@ -49,7 +47,7 @@ if {{var "l"}} != 0 {
 	}
 }
 } // else len==0: TODO: Should we clear map entries?
-r.ReadMapEnd() {{/* z.DecSendContainerState(codecSelfer_containerMapEnd{{ .Sfx }}) */}}
+z.DecSendContainerState(codecSelfer_containerMapEnd{{ .Sfx }})
 `
 
 const genDecListTmpl = `

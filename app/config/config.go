@@ -11,7 +11,6 @@ import (
 const (
 	envJWTSaltName    = "JWT_SALT"
 	additionalJWTSalt = "tdpWjinLxsqU7FVZbVYkQmeuasfeasAeSDf"
-	additionalDBSalt  = "DXjC4TeLKZKPnrdTdMFWxCvnAfeAfeFDEAe"
 	clientID          = "9d836570317f4c18bca0db6d2ac38e29"
 	clientSecret      = "4be04f64224244ec9b2b0e879db61ace"
 )

@@ -15,10 +15,10 @@ func init() {
 type User struct {
 	ID                int64      `gorm:"AUTO_INCREMENT" json:"id"`
 	SubscriberID      string     `gorm:"type:varchar(32)" json:"subscriber_id"`
-	CreatedAt         time.Time  `json:"created_at,omitempty"`
-	UpdatedAt         time.Time  `json:"updated_at,omitempty"`
-	DeletedAt         *time.Time `json:"deleted_at,omitempty"`
 	Email             string     `gorm:"type:varchar(130);unique_index" json:"email,omitempty"`
 	Password          string     `json:"password,omitempty"`
 	VerificationToken string     `json:"verification_token,omitempty"`
+	CreatedAt         time.Time  `json:"created_at,omitempty"`
+	UpdatedAt         time.Time  `json:"updated_at,omitempty"`
+	DeletedAt         *time.Time `json:"deleted_at,omitempty"`
 }

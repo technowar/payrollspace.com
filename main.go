@@ -54,7 +54,7 @@ func main() {
 
 	initializeRoutes(router)
 
-	router.Run(":3000")
+	router.Run(":8080")
 }
 
 func initializeRoutes(origRouter *gin.Engine) {

@@ -33,7 +33,7 @@ func Get(suffix string) (string, error) {
 	if compress {
 		key = prefix + ".c." + suffix
 	} else {
-		key = prefix + suffix
+		key = prefix + "." + suffix
 	}
 
 	it, err := mc.Get(key)
@@ -61,7 +61,7 @@ func Set(suffix string, val string, ttl int64) (bool, error) {
 			Expiration: int32(ttl),
 		})
 	} else {
-		key = prefix + suffix
+		key = prefix + "." + suffix
 		err = mc.Set(&memcache.Item{
 			Key:        key,
 			Value:      []byte(val),
@@ -77,7 +77,7 @@ func Set(suffix string, val string, ttl int64) (bool, error) {
 }
 
 func Delete(suffix string) (bool, error) {
-	key := prefix + suffix
+	key := prefix + "." + suffix
 
 	if compress {
 		key = prefix + ".c." + suffix

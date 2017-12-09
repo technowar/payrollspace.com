@@ -11,8 +11,6 @@ import (
 const (
 	envJWTSaltName    = "JWT_SALT"
 	additionalJWTSalt = "tdpWjinLxsqU7FVZbVYkQmeuasfeasAeSDf"
-	clientID          = "9d836570317f4c18bca0db6d2ac38e29"
-	clientSecret      = "4be04f64224244ec9b2b0e879db61ace"
 )
 
 var jwtSalt string
@@ -39,14 +37,6 @@ func CheckEnvs() error {
 	return nil
 }
 
-func GetClientID() string {
-	return clientID
-}
-
-func GetClientSecret() string {
-	return clientSecret
-}
-
 func GetCallbackURL(c *gin.Context) string {
 	hostname := GetCallbackHostname(c)
 	scheme := "http"
@@ -62,7 +52,6 @@ func GetCallbackHostname(c *gin.Context) string {
 	return "localhost:3000"
 }
 
-// GetJWTSalt ...
 func GetJWTSalt() string {
 	if envChecked == false {
 		os.Exit(1)

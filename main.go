@@ -29,10 +29,10 @@ func main() {
 	}
 
 	if os.Getenv("MODE") != "production" {
-		allowOrigins = append(allowOrigins, "http://localhost:3000")
-		allowOrigins = append(allowOrigins, "http://localhost:3001")
-		allowOrigins = append(allowOrigins, "http://127.0.0.1:3000")
-		allowOrigins = append(allowOrigins, "http://127.0.0.1:3001")
+		allowOrigins = append(allowOrigins, "http://localhost:8080")
+		allowOrigins = append(allowOrigins, "http://localhost:8081")
+		allowOrigins = append(allowOrigins, "http://127.0.0.1:8080")
+		allowOrigins = append(allowOrigins, "http://127.0.0.1:8081")
 	}
 
 	router.Use(cors.New(cors.Config{
@@ -59,11 +59,7 @@ func main() {
 
 func initializeRoutes(origRouter *gin.Engine) {
 	api := origRouter.Group("")
-	api.GET("/", controllers.AppIndex)
 
-	api = origRouter.Group("/v1")
-	{
-		api.GET("/", controllers.AppIndex)
-		api.POST("/login", controllers.APILogin)
-	}
+	api.GET("/", controllers.Index)
+	api.POST("/login", controllers.Login)
 }

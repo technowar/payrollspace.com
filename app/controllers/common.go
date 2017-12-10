@@ -22,12 +22,3 @@ func OutputDataJSON(c *gin.Context, code int, msg string, data gin.H) {
 		"data":    data,
 	})
 }
-
-func OutputError(c *gin.Context, code int, msg string, data gin.H) {
-	data["CFConnectingIP"] = c.Request.Header.Get("CF-Connecting-IP")
-	data["XForwardedFor"] = c.Request.Header.Get("X-Forwarded-For")
-	data["ClientIP"] = c.ClientIP()
-	data["Host"] = c.Request.Host
-
-	c.HTML(code, msg, data)
-}

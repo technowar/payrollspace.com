@@ -35,6 +35,6 @@ Icon?
 *.zip
 
 # Others
-tmp/
-vendor/
+tmp/*
+vendor/*
 glide.lock

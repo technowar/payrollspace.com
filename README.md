@@ -1,8 +1,16 @@
 # PayrollSpace.com
 
-- Development
-  > `glide up` to install golang package and dependencies. Note: you should install `glide`.
-  > `fresh` to build and run the application. Note: you should install `fresh`.
+## Install them dependencies
+> `$ glide up`
 
+## Run the server
+> `$ fresh`
+
+## Prerequisites
+
+* Glide installed
+* Fresh installed
+* MySQL installed, and running
+* Memcached installed, and running
 
 Copyright (c) 2017

@@ -23,12 +23,13 @@ func Setup() {
 	dbUser := getenvWithDefault("DB_USER", "root")
 	dbPass := getenvWithDefault("DB_PASS", "")
 	dbPort := getenvWithDefault("DB_PORT", "3306")
+	tryOnlyOnce := getenvWithDefault("TRY_ONLY_ONCE", "")
+	skipMigration := getenvWithDefault("SKIP_MIGRATION", "")
+
 	if dbPass != "" {
 		dbPass = ":" + dbPass
 	}
 
-	tryOnlyOnce := getenvWithDefault("TRY_ONLY_ONCE", "")
-	skipMigration := getenvWithDefault("SKIP_MIGRATION", "")
 	dsn1 := fmt.Sprintf(
 		"%s%s@tcp(%s:%s)/%s?charset=utf8mb4&collation=utf8mb4_unicode_ci&parseTime=True&loc=Local",
 		dbUser,
@@ -46,62 +47,62 @@ func Setup() {
 		"mysql",
 	)
 
-	var dberr error
-	//var db *gorm.DB
+	var err error
 	loop := 0
+
 	for true {
-		db, dberr = gorm.Open("mysql", dsn1)
-		if dberr == nil {
-			log.Printf("db connect OK: %s", dsn1)
+		db, err = gorm.Open("mysql", dsn1)
+
+		if err == nil {
+			log.Printf("DB Connection Success: %s", dsn1)
+
 			isConnected = true
+
 			break
 		}
 
-		log.Print("DB Connection Error: dsn1=" + dsn1)
+		log.Printf("DB %s Connection Error: %s", dsn1, err.Error())
 
-		log.Print(dberr.Error())
 		if tryOnlyOnce != "" {
 			return
 		}
 
 		time.Sleep(time.Millisecond * 3000)
 
-		db, dberr = gorm.Open("mysql", dsn2)
-		if dberr == nil {
-			log.Printf("db connect OK: %s", dsn2)
-			log.Printf("create database %s", dbName)
+		db, err = gorm.Open("mysql", dsn2)
+
+		if err == nil {
+			log.Printf("DB Connection Success: %s", dsn2)
+			log.Printf("DB Creation:  %s", dbName)
+
 			db.Exec("CREATE DATABASE IF NOT EXISTS `" + dbName + "` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;")
-			// might be error...?
-			log.Printf("use dbname")
 			db.Exec("use `" + dbName + "` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;")
+
 			db.Close()
 		} else {
-			log.Print("DB Connection Error: dsn2=" + dsn2)
-			log.Print(dberr.Error())
+			log.Printf("DB %s Connection Error: %s", dsn2, err.Error())
+
 			loop++
+
 			if loop > 300 {
-				//give up to connect... even though no connect db.
 				break
 			}
 		}
 	}
 
-	log.Print("FLUSH HOSTS;")
-	err := db.Debug().Exec("FLUSH HOSTS;").Error
+	err = db.Debug().Exec("FLUSH HOSTS;").Error
+
 	if err != nil {
-		log.Print(err)
+		log.Printf("Flush Hosts Error: %s", err)
 	} else {
-		log.Print("flush hosts => ok")
+		log.Print("Flush Hosts Success")
 	}
 
 	//ResetTables()
-	if skipMigration != "" {
-		log.Print("skip migration")
-		//MigrateTables()
-	} else {
-		log.Printf("before auto migrate.")
+	if skipMigration == "" {
+		log.Printf("Migrating Tables")
+
 		MigrateTables()
-		log.Printf("after auto migrate..")
 	}
 
 }
@@ -121,8 +122,10 @@ func MigrateTables() {
 // getenvWithDefault ...
 func getenvWithDefault(key string, def string) string {
 	v := os.Getenv(key)
+
 	if v == "" {
 		return def
 	}
+
 	return v
 }

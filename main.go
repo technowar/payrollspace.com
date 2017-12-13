@@ -48,8 +48,6 @@ func main() {
 
 	router.Use(sessions.Sessions("mysession", store))
 	router.Use(gzip.Gzip(gzip.DefaultCompression))
-	// router.Static("/assets", "./assets")
-	// router.StaticFile("/favicon.ico", "./assets/favicon.ico")
 	router.Use(gin.Recovery())
 
 	initializeRoutes(router)
@@ -59,7 +57,11 @@ func main() {
 
 func initializeRoutes(origRouter *gin.Engine) {
 	api := origRouter.Group("")
-
 	api.GET("/", controllers.Index)
-	api.POST("/login", controllers.Login)
+
+	apiVersion := origRouter.Group("/v1")
+	{
+		apiVersion.POST("/login", controllers.Login)
+		apiVersion.POST("/signup", controllers.Signup)
+	}
 }

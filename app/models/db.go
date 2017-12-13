@@ -1,9 +1,12 @@
 package models
 
 import (
+	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -128,4 +131,22 @@ func getenvWithDefault(key string, def string) string {
 	}
 
 	return v
+}
+
+// hashedPassword ...
+func hashedPassword(rawPassword string) string {
+	s := sha256.New()
+	s.Write([]byte(rawPassword))
+	return base64.URLEncoding.EncodeToString(s.Sum(nil))
+}
+
+// sanitizeEmail ...
+func sanitizeEmail(email string) (string, error) {
+	email = strings.ToLower(email)
+	email = strings.Trim(email, "\r\n\t @!#$%^&*(){}[];'.,/'")
+	if emailRegex.Match([]byte(email)) {
+		return email, nil
+	}
+	return email, fmt.Errorf("invalid email")
+
 }

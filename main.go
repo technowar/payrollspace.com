@@ -57,11 +57,8 @@ func main() {
 
 func initializeRoutes(origRouter *gin.Engine) {
 	api := origRouter.Group("")
-	api.GET("/", controllers.Index)
 
-	apiVersion := origRouter.Group("/v1")
-	{
-		apiVersion.POST("/login", controllers.Login)
-		apiVersion.POST("/signup", controllers.Signup)
-	}
+	api.GET("/", controllers.Index)
+	api.POST("/login", controllers.Login)
+	api.POST("/signup", controllers.Signup)
 }

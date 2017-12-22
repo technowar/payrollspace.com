@@ -9,13 +9,16 @@ import (
 func Signup(c *gin.Context) {
 	var err error
 	var user models.User
+
 	if err = c.BindJSON(&user); err != nil {
-		OutputJSON(c, 200, err.Error())
+		OutputJSON(c, "error", err.Error())
 		return
 	}
+
 	user, err = user.Create()
+
 	if err != nil {
-		OutputJSON(c, 200, err.Error())
+		OutputJSON(c, "error", err.Error())
 		return
 	}
 
@@ -28,7 +31,7 @@ func Signup(c *gin.Context) {
 
 	// TODO: send email notification
 
-	OutputDataJSON(c, 200, "login ok", gin.H{
+	OutputDataJSON(c, "success", "login ok", gin.H{
 		"token":     "token",
 		"user_uuid": "user.UUID",
 	})

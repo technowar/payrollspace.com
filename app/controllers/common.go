@@ -1,23 +1,21 @@
 package controllers
 
 import (
-	"net/http"
-
 	"gopkg.in/gin-gonic/gin.v1"
 )
 
 // OutputJSON ...
-func OutputJSON(c *gin.Context, code int, msg string) {
-	c.JSON(code, gin.H{
-		"status":  http.StatusText(code),
+func OutputJSON(c *gin.Context, status, msg string) {
+	c.JSON(200, gin.H{
+		"status":  status,
 		"message": msg,
 	})
 }
 
 // OutputDataJSON ...
-func OutputDataJSON(c *gin.Context, code int, msg string, data gin.H) {
-	c.JSON(code, gin.H{
-		"status":  http.StatusText(code),
+func OutputDataJSON(c *gin.Context, status, msg string, data gin.H) {
+	c.JSON(200, gin.H{
+		"status":  status,
 		"message": msg,
 		"data":    data,
 	})

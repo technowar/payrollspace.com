@@ -1,8 +1,6 @@
 package controllers
 
-import (
-	"gopkg.in/gin-gonic/gin.v1"
-)
+import "gopkg.in/gin-gonic/gin.v1"
 
 // OutputJSON ...
 func OutputJSON(c *gin.Context, status, msg string) {

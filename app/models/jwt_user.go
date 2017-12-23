@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/XanderDwyl/payrollspace.com/app/config"
-
 	jwt "github.com/dgrijalva/jwt-go"
 )
 

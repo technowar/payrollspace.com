@@ -7,7 +7,6 @@ import (
 	"github.com/XanderDwyl/payrollspace.com/app/config"
 	"github.com/XanderDwyl/payrollspace.com/app/controllers"
 	"github.com/XanderDwyl/payrollspace.com/app/models"
-
 	jwt "github.com/dgrijalva/jwt-go"
 
 	"gopkg.in/gin-gonic/gin.v1"

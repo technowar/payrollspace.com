@@ -3,7 +3,6 @@ package models
 import (
 	"errors"
 	"fmt"
-	"log"
 	"regexp"
 	"time"
 
@@ -29,35 +28,42 @@ type User struct {
 	DeletedAt         *time.Time `json:"deleted_at,omitempty"`
 }
 
+// LoginRequest ...
+type LoginRequest struct {
+	Email    string `json:"email" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+
+// UserTable ...
+type UserTable struct{}
+
 // Create ...
 func (u *User) Create() (User, error) {
-
 	if u.ID == 0 {
 		var err error
 
 		// backend validation
-		minPasswordLen := 4
+		minPasswordLen := 6
 		if u.Password == "" || len(u.Password) < minPasswordLen {
-			return *u, fmt.Errorf("password must have %d chars", minPasswordLen)
+			return *u, fmt.Errorf("Password must have %d characters", minPasswordLen)
 		}
-		u.Email, err = sanitizeEmail(u.Email)
 
+		u.Email, err = sanitizeEmail(u.Email)
 		if err != nil {
-			return *u, fmt.Errorf("email is invalid")
+			return *u, fmt.Errorf("Email is invalid")
 		}
 
 		// check duplicate email
 		userData := UserTable{}
 		user, err := userData.GetUserByEmail(u.Email)
 		if err == nil && user.ID > 0 {
-			return *u, errors.New("email already exists")
+			return *u, errors.New("Email already exist")
 		}
 
 		origPassword := u.Password
 		u.Password = hashedPassword(origPassword)
 		err = db.Create(u).Error
 		if err != nil {
-			log.Print(err)
 			u.ID = 0
 			u.Password = origPassword
 		}
@@ -68,20 +74,13 @@ func (u *User) Create() (User, error) {
 	return *u, nil
 }
 
-// UserTable ...
-type UserTable struct{}
-
 // GetUserByEmail ...
 func (repo *UserTable) GetUserByEmail(email string) (User, error) {
 	var user User
-	err := db.Raw("select * from users where email = ? limit 1 ", email).Scan(&user).Error
-	return user, err
-}
 
-// LoginRequest ...
-type LoginRequest struct {
-	Email    string `json:"email" binding:"required"`
-	Password string `json:"password" binding:"required"`
+	err := db.Raw("select * from users where email = ? limit 1 ", email).Scan(&user).Error
+
+	return user, err
 }
 
 // Login ...
@@ -90,12 +89,12 @@ func (u *LoginRequest) Login() (User, error) {
 
 	err := db.Where("email = ?", u.Email).Limit(1).First(&user).Error
 	if err != nil {
-		return user, errors.New("The username you entered doesn't belong to an account. Please check your username and try again")
+		return user, errors.New("The username you entered doesn't belong to an account. Please check your username and try again.")
 	}
 
 	err = db.Where("email = ?", u.Email).Where("password = ?", hashedPassword(u.Password)).Limit(1).First(&user).Error
 	if err != nil {
-		return user, errors.New("Sorry, your password was incorrect. Please double-check your password")
+		return user, errors.New("Sorry, your password is incorrect. Please double-check your password.")
 	}
 
 	return user, err
@@ -110,5 +109,6 @@ func (u *User) CreateJWToken() (string, error) {
 		UpdatedAt: u.UpdatedAt,
 	})
 	tokenString, err := token.SignedString([]byte(config.GetJWTSalt()))
+
 	return tokenString, err
 }

@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"github.com/XanderDwyl/payrollspace.com/app/models"
+
 	"gopkg.in/gin-gonic/gin.v1"
 )
 

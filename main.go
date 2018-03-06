@@ -7,7 +7,6 @@ import (
 
 	"github.com/XanderDwyl/payrollspace.com/app/controllers"
 	"github.com/XanderDwyl/payrollspace.com/app/models"
-
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-contrib/sessions"

@@ -138,6 +138,7 @@ func hashedPassword(rawPassword string) string {
 	s := sha256.New()
 
 	s.Write([]byte(rawPassword))
+
 	return base64.URLEncoding.EncodeToString(s.Sum(nil))
 }
 
@@ -150,5 +151,5 @@ func sanitizeEmail(email string) (string, error) {
 		return email, nil
 	}
 
-	return email, fmt.Errorf("Invalid email")
+	return email, fmt.Errorf("Invalid email.")
 }

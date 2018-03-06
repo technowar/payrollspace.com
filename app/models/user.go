@@ -40,28 +40,25 @@ type UserTable struct{}
 // Create ...
 func (u *User) Create() (User, error) {
 	if u.ID == 0 {
-		var err error
-
-		// backend validation
 		minPasswordLen := 6
 		if u.Password == "" || len(u.Password) < minPasswordLen {
 			return *u, fmt.Errorf("Password must have %d characters", minPasswordLen)
 		}
 
+		var err error
 		u.Email, err = sanitizeEmail(u.Email)
 		if err != nil {
-			return *u, fmt.Errorf("Email is invalid")
+			return *u, err
 		}
 
-		// check duplicate email
 		userData := UserTable{}
 		user, err := userData.GetUserByEmail(u.Email)
 		if err == nil && user.ID > 0 {
-			return *u, errors.New("Email already exist")
+			return *u, errors.New("Email already exist.")
 		}
 
 		origPassword := u.Password
-		u.Password = hashedPassword(origPassword)
+		u.Password = hashedPassword(u.Password)
 		err = db.Create(u).Error
 		if err != nil {
 			u.ID = 0
@@ -78,7 +75,7 @@ func (u *User) Create() (User, error) {
 func (repo *UserTable) GetUserByEmail(email string) (User, error) {
 	var user User
 
-	err := db.Raw("select * from users where email = ? limit 1 ", email).Scan(&user).Error
+	err := db.Debug().Where("email = ?", email).Limit(1).First(&user).Error
 
 	return user, err
 }
@@ -86,13 +83,14 @@ func (repo *UserTable) GetUserByEmail(email string) (User, error) {
 // Login ...
 func (u *LoginRequest) Login() (User, error) {
 	var user User
+	var err error
 
-	err := db.Where("email = ?", u.Email).Limit(1).First(&user).Error
+	err = db.Debug().Where("email = ?", u.Email).Limit(1).First(&user).Error
 	if err != nil {
 		return user, errors.New("The username you entered doesn't belong to an account. Please check your username and try again.")
 	}
 
-	err = db.Where("email = ?", u.Email).Where("password = ?", hashedPassword(u.Password)).Limit(1).First(&user).Error
+	err = db.Debug().Where("email = ?", u.Email).Where("password = ?", hashedPassword(u.Password)).Limit(1).First(&user).Error
 	if err != nil {
 		return user, errors.New("Sorry, your password is incorrect. Please double-check your password.")
 	}
@@ -108,6 +106,7 @@ func (u *User) CreateJWToken() (string, error) {
 		CreatedAt: u.CreatedAt,
 		UpdatedAt: u.UpdatedAt,
 	})
+
 	tokenString, err := token.SignedString([]byte(config.GetJWTSalt()))
 
 	return tokenString, err
